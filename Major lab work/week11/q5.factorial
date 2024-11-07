@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Prompt user for input
+echo -n "Enter a number: "
+read number
+
+# Initialize factorial variable to 1
+factorial=1
+
+# Calculate factorial
+for (( i=1; i<=number; i++ ))
+do
+  factorial=$((factorial * i))
+done
+
+# Display the result
+echo "Factorial of $number is $factorial"
