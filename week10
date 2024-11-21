@@ -1,1 +1,1165 @@
 
+Fcfs 
+#include<stdio.h>
+
+void findWaitingTime(int processes[], int n, int bt[], int wt[]) {
+    wt[0] = 0; // Waiting time for the first process is 0
+    for (int i = 1; i < n; i++) {
+        wt[i] = bt[i - 1] + wt[i - 1];
+    }
+}
+
+void findTurnAroundTime(int processes[], int n, int bt[], int wt[], int tat[]) {
+    for (int i = 0; i < n; i++) {
+        tat[i] = bt[i] + wt[i];
+    }
+}
+
+void findavgTime(int processes[], int n, int bt[]) {
+    int wt[n], tat[n], total_wt = 0, total_tat = 0;
+
+    findWaitingTime(processes, n, bt, wt);
+    findTurnAroundTime(processes, n, bt, wt, tat);
+
+    printf("Processes   Burst time   Waiting time   Turnaround time\n");
+
+    for (int i = 0; i < n; i++) {
+        total_wt += wt[i];
+        total_tat += tat[i];
+        printf("   %d           %d              %d               %d\n", processes[i], bt[i], wt[i], tat[i]);
+    }
+
+    printf("Average waiting time = %.2f\n", (float)total_wt / n);
+    printf("Average turnaround time = %.2f\n", (float)total_tat / n);
+}
+
+int main() {
+    int processes[] = {1, 2, 3};
+    int n = sizeof processes / sizeof processes[0];
+    int burst_time[] = {10, 5, 8};
+
+    findavgTime(processes, n, burst_time);
+    return 0;
+}
+
+
+
+
+
+
+
+Sjf
+#include <stdio.h>
+
+int main() {
+    int n, total_wt = 0, total_tat = 0;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    int processes[n], bt[n], wt[n], tat[n];
+
+    printf("Enter Burst Times:\n");
+    for (int i = 0; i < n; i++) {
+        printf("P%d: ", i + 1);
+        scanf("%d", &bt[i]);
+        processes[i] = i + 1;
+    }
+
+    // Sort processes by burst time
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (bt[i] > bt[j]) {
+                int temp = bt[i];
+                bt[i] = bt[j];
+                bt[j] = temp;
+
+                temp = processes[i];
+                processes[i] = processes[j];
+                processes[j] = temp;
+            }
+        }
+    }
+
+    wt[0] = 0;
+    for (int i = 1; i < n; i++) {
+        wt[i] = wt[i - 1] + bt[i - 1];
+    }
+
+    for (int i = 0; i < n; i++) {
+        tat[i] = bt[i] + wt[i];
+        total_wt += wt[i];
+        total_tat += tat[i];
+    }
+
+    printf("P     BT     WT     TAT\n");
+    for (int i = 0; i < n; i++) {
+        printf("P%d    %d     %d      %d\n", processes[i], bt[i], wt[i], tat[i]);
+    }
+
+    printf("Average Waiting Time = %.2f\n", (float)total_wt / n);
+    printf("Average Turnaround Time = %.2f\n", (float)total_tat / n);
+    return 0;
+}
+
+
+
+
+Round robin 
+#include <stdio.h>
+
+int main() {
+    int n, quantum, time = 0, remaining;
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    int burst[n], rem[n], wait[n], turn[n];
+    remaining = n;
+
+    printf("Enter burst time for each process:\n");
+    for (int i = 0; i < n; i++) {
+        printf("Process %d: ", i + 1);
+        scanf("%d", &burst[i]);
+        rem[i] = burst[i];
+        wait[i] = 0;
+    }
+
+    printf("Enter the time quantum: ");
+    scanf("%d", &quantum);
+
+    while (remaining > 0) {
+        for (int i = 0; i < n; i++) {
+            if (rem[i] > 0) {
+                if (rem[i] > quantum) {
+                    time += quantum;
+                    rem[i] -= quantum;
+                } else {
+                    time += rem[i];
+                    turn[i] = time;
+                    wait[i] = turn[i] - burst[i];
+                    rem[i] = 0;
+                    remaining--;
+                }
+            }
+        }
+    }
+
+    printf("\nBurst-time  Waiting-time  Turnaround-time\n");
+    float total_wait = 0, total_turn = 0;
+    for (int i = 0; i < n; i++) {
+        printf("%d           %d             %d\n", burst[i], wait[i], turn[i]);
+        total_wait += wait[i];
+        total_turn += turn[i];
+    }
+
+    printf("\nAverage waiting time: %.2f\n", total_wait / n);
+    printf("Average turnaround time: %.2f\n", total_turn / n);
+    return 0;
+}
+
+
+
+
+
+Priority scheduling 
+#include <stdio.h>
+
+int main() {
+    int num_proc;
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &num_proc);
+
+    int burst_time[num_proc], priority[num_proc], waiting_time[num_proc], turnaround_time[num_proc];
+    float total_wt = 0, total_tat = 0;
+
+    printf("Enter burst times:\n");
+    for (int i = 0; i < num_proc; i++) {
+        printf("Process %d: ", i + 1);
+        scanf("%d", &burst_time[i]);
+    }
+
+    printf("Enter priorities (lower number = higher priority):\n");
+    for (int i = 0; i < num_proc; i++) {
+        printf("Process %d: ", i + 1);
+        scanf("%d", &priority[i]);
+    }
+
+    // Sort processes by priority (using Bubble Sort)
+    for (int i = 0; i < num_proc - 1; i++) {
+        for (int j = i + 1; j < num_proc; j++) {
+            if (priority[i] > priority[j]) {
+                int temp = priority[i];
+                priority[i] = priority[j];
+                priority[j] = temp;
+
+                temp = burst_time[i];
+                burst_time[i] = burst_time[j];
+                burst_time[j] = temp;
+            }
+        }
+    }
+
+    waiting_time[0] = 0; // First process has no waiting time
+    for (int i = 1; i < num_proc; i++) {
+        waiting_time[i] = burst_time[i - 1] + waiting_time[i - 1];
+    }
+
+    printf("\nPriority   Burst-time   Waiting-time   Turnaround-time\n");
+    for (int i = 0; i < num_proc; i++) {
+        turnaround_time[i] = burst_time[i] + waiting_time[i];
+        total_wt += waiting_time[i];
+        total_tat += turnaround_time[i];
+        printf("%d\t\t%d\t\t%d\t\t%d\n", priority[i], burst_time[i], waiting_time[i], turnaround_time[i]);
+    }
+
+    printf("\nAverage Waiting Time: %.2f\n", total_wt / num_proc);
+    printf("Average Turnaround Time: %.2f\n", total_tat / num_proc);
+    return 0;
+}
+
+
+
+
+
+
+
+
+Deadlock 
+#include <stdio.h>
+
+int main() {
+    int processes = 3, resources = 3;
+
+    int allocation[3][3] = {{0, 1, 0}, {2, 0, 0}, {3, 0, 2}};
+    int max[3][3] = {{7, 5, 3}, {3, 2, 2}, {9, 0, 2}};
+    int available[3] = {3, 3, 2};
+
+    int finish[3] = {0, 0, 0}; // To check if the process is finished
+    int work[3];
+
+    // Initialize work = available resources
+    for (int i = 0; i < resources; i++) {
+        work[i] = available[i];
+    }
+
+    int count = 0;
+    while (count < processes) {
+        int found = 0;
+
+        for (int i = 0; i < processes; i++) {
+            if (!finish[i]) {
+                int canFinish = 1;
+
+                for (int j = 0; j < resources; j++) {
+                    if (max[i][j] - allocation[i][j] > work[j]) {
+                        canFinish = 0;
+                        break;
+                    }
+                }
+
+                if (canFinish) {
+                    for (int j = 0; j < resources; j++) {
+                        work[j] += allocation[i][j];
+                    }
+                    finish[i] = 1;
+                    found = 1;
+                    count++;
+                    printf("Process %d completed.\n", i);
+                }
+            }
+        }
+
+        if (!found) {
+            printf("Deadlock detected! No process can proceed.\n");
+            return 0;
+        }
+    }
+
+    printf("No deadlock detected. All processes completed successfully.\n");
+    return 0;
+}
+
+
+
+Bankers algorithm 
+#include <stdio.h>
+
+int main() {
+    int p, r;
+
+    printf("Enter number of processes and resources: ");
+    scanf("%d %d", &p, &r);
+
+    int allocation[p][r], max[p][r], need[p][r], available[r];
+    int finish[p], safeSeq[p];
+
+    printf("Enter Allocation matrix:\n");
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < r; j++) {
+            scanf("%d", &allocation[i][j]);
+        }
+    }
+
+    printf("Enter Max matrix:\n");
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < r; j++) {
+            scanf("%d", &max[i][j]);
+        }
+    }
+
+    printf("Enter Available resources:\n");
+    for (int i = 0; i < r; i++) {
+        scanf("%d", &available[i]);
+    }
+
+    // Calculate Need matrix
+    for (int i = 0; i < p; i++) {
+        for (int j = 0; j < r; j++) {
+            need[i][j] = max[i][j] - allocation[i][j];
+        }
+        finish[i] = 0;
+    }
+
+    int work[r], count = 0;
+    for (int i = 0; i < r; i++) {
+        work[i] = available[i];
+    }
+
+    while (count < p) {
+        int found = 0;
+
+        for (int i = 0; i < p; i++) {
+            if (!finish[i]) {
+                int canAllocate = 1;
+                for (int j = 0; j < r; j++) {
+                    if (need[i][j] > work[j]) {
+                        canAllocate = 0;
+                        break;
+                    }
+                }
+
+                if (canAllocate) {
+                    for (int j = 0; j < r; j++) {
+                        work[j] += allocation[i][j];
+                    }
+                    finish[i] = 1;
+                    safeSeq[count++] = i;
+                    found = 1;
+                }
+            }
+        }
+
+        if (!found) {
+            printf("Deadlock detected! No safe sequence.\n");
+            return 0;
+        }
+    }
+
+    printf("Safe Sequence: ");
+    for (int i = 0; i < p; i++) {
+        printf("P%d ", safeSeq[i]);
+    }
+    printf("\n");
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+Area and Perimeter of Rectangle & Area and Circumference of Circle:
+
+#!/bin/bash
+
+Read -p “Enter length: “ l
+
+Read -p “Enter breadth: “ b
+
+Read -p “Enter radius: “ r
+
+Echo “area of rectangle: $((l*b))”
+
+Echo “perimeter of rectangle: $((2*(l+b)))”
+
+Echo “area of circle: $(echo “scale=2; 3.141 * $r * $r” | bc)”
+
+Echo “circumference of circle: $(echo “scale=2; 2 * 3.141 * $r” | bc)”
+
+Convert Distance (km) to Meters, Feet, Inches, and Centimeters
+
+#!/bin/bash
+
+Read -p “Enter distance (in km): “ dist
+
+Echo “meter: $((dist*1000))”
+
+Echo “feet: $(echo “scale=2; $dist * 3280.84” | bc)”
+
+Echo “inch: $(echo “scale=2; $dist * 39370.079” | bc)”
+
+Echo “centimeter: $((dist*100000))”
+
+1.	Sum of Digits of a Five-Digit Number:
+
+#!/bin/bash
+
+Read -p “Enter a number: “ num
+
+Sum=0
+
+While [ $num -gt 0 ]; do
+
+    Sum=$((sum + num % 10))
+
+    Num=$((num / 10))
+
+Done
+
+Echo “Sum: $sum”
+
+2.	Display File Information Using ls -l:
+
+
+
+Bash
+
+Copy code
+
+#!/bin/bash
+
+If [ $# -eq 0 ]; then
+
+    Echo “Provide file name”
+
+    Exit 1
+
+Fi
+
+If [ ! -e “$1” ]; then
+
+    Echo “File ‘$1’ does not exist!”
+
+    Exit 1
+
+Fi
+
+Ls -l “$1”
+
+1.	Determine Leap Year
+
+#!/bin/bash
+
+Read -p “Enter a year: “ year
+
+If (( year % 400 == 0 || (year % 4 == 0 && year % 100 != 0) )); then
+
+    Echo “$year is a leap year.”
+
+Else
+
+    Echo “$year is not a leap year.”
+
+Fi
+
+2.	Calculate Profit or Loss
+
+#!/bin/bash
+
+Read -p “Enter cost price: “ cp
+
+Read -p “Enter selling price: “ sp
+
+If (( sp > cp )); then
+
+    Echo “Profit: $((sp – cp))”
+
+Elif (( sp < cp )); then
+
+    Echo “Loss: $((cp – sp))”
+
+Else
+
+    Echo “No profit, no loss.”
+
+Fi   Compare Two Files
+
+#!/bin/bash
+
+If cmp -s “$1” “$2”; then
+
+    Echo “Files are identical. Deleting $2.”
+
+    Rm “$2”
+
+Else
+
+    Echo “Files are different.”
+
+Fi  Determine Current Year is Leap Year
+
+#!/bin/bash
+
+Year=$(date +%Y)
+
+If (( year % 400 == 0 || (year % 4 == 0 && year % 100 != 0) )); then
+
+    Echo “$year is a leap year.”
+
+Else
+
+    Echo “$year is not a leap year.”
+
+Fi
+
+1.	Display Greeting Based on Time
+
+#!/bin/bash
+
+Hour=$(date +%H)
+
+If (( hour < 12 )); then
+
+    Echo “Good Morning”
+
+Elif (( hour < 18 )); then
+
+    Echo “Good Afternoon”
+
+Else
+
+    Echo “Good Evening”
+
+Fi
+
+2.	Calculate Overtime Pay
+
+#!/bin/bash
+
+For (( I = 1; I <= 10; i++ )); do
+
+    Read -p “Enter hours worked by employee $i: “ hours
+
+    If (( hours > 40 )); then
+
+        Echo “Overtime pay: $(( (hours – 40) * 12 ))”
+
+    Else
+
+        Echo “No overtime.”
+
+    Fi
+
+1.	Find Factorial
+
+#!/bin/bash
+
+Read -p “Enter a number: “ num
+
+Factorial=1
+
+For (( I = 1; I <= num; i++ )); do
+
+    Factorial=$((factorial * i))
+
+Done
+
+Echo “Factorial: $factorial”
+
+2.	Power of a Number
+
+#!/bin/bash
+
+Read -p “Enter base: “ base
+
+Read -p “Enter power: “ power
+
+Result=1
+
+For (( I = 1; I <= power; i++ )); do
+
+    Result=$((result * base))
+
+Done
+
+Echo “$base^$power = $result”
+
+1.	Count Entries in Subdirectories
+
+Q: How do you count entries in each subdirectory in a given path?Script
+
+#!/bin/bash
+
+For dir in “$1”/*; do
+
+    If [[ -d $dir ]]; then
+
+        Count=$(ls “$dir” | wc -l)
+
+        Echo “$dir: $count entries”
+
+    Fi
+
+Done
+
+2.	Generate Combinations
+
+#!/bin/bash
+
+For I in 1 2 3; do
+
+    For j in 1 2 3; do
+
+        For k in 1 2 3; do
+
+            Echo “$i$j$k”
+
+        Done
+
+    Done
+
+Done
+
+1.	Basic File Commands
+
+Q: How do you demonstrate basic file commands in Linux?
+
+Script:
+
+
+
+#!/bin/bash
+
+Echo “Creating file ‘example.txt’”
+
+Touch example.txt
+
+Echo “Listing all files:”
+
+Ls
+
+Echo “Deleting ‘example.txt’”
+
+Rm example.txt
+
+Delete Lines Containing ‘unix’
+
+Q: How do you delete all lines containing the word “unix” in files supplied as arguments?
+
+Script:
+
+#!/bin/bash
+
+For file in “$@”; do
+
+    Sed -I ‘/unix/d’ “$file”
+
+Done
+
+
+
+
+
+
+
+
+Fcfs
+
+#include<stdio.h>
+
+Void findWaitingTime(int processes[], int n, int bt[], int wt[]) {
+
+    Wt[0] = 0; // Waiting time for the first process is 0
+
+    For (int I = 1; I < n; i++) {
+
+        Wt[i] = bt[I – 1] + wt[I – 1];  } }
+
+Void findTurnAroundTime(int processes[], int n, int bt[], int wt[], int tat[]) {
+
+    For (int I = 0; I < n; i++) {
+
+        Tat[i] = bt[i] + wt[i];    }   }
+
+Void findavgTime(int processes[], int n, int bt[]) {
+
+    Int wt[n], tat[n], total_wt = 0, total_tat = 0;
+
+    findWaitingTime(processes, n, bt, wt);
+
+    findTurnAroundTime(processes, n, bt, wt, tat);
+
+    printf(“Processes   Burst time   Waiting time   Turn around time\n”);
+
+    for (int I = 0; I < n; i++) {    total_wt += wt[i];   total_tat += tat[i];
+
+        printf(“   %d         %d              %d                %d\n”, 
+
+               processes[i], bt[i], wt[i], tat[i]);      }
+
+    Printf(“Average waiting time = %.2f\n”, (float)total_wt / n);
+
+    Printf(“Average turn around time = %.2f\n”, (float)total_tat / n);    }
+
+Int main() {  Int processes[] = { 1, 2, 3 };
+
+    Int n = sizeof processes / sizeof processes[0];
+
+    Int burst_time[] = {10, 5, 8};
+
+    findavgTime(processes, n, burst_time);    return 0;    }
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+SJF 
+
+#include <stdio.h>
+
+Int main() {
+
+    Int A[100][4], n, total_wt = 0, total_tat = 0, temp, index;
+
+    Printf(“Enter number of processes: “);
+
+    Scanf(“%d”, &n);
+
+    Printf(“Enter Burst Times:\n”);
+
+    For (int I = 0; I < n; i++) {
+
+        Printf(“P%d: “, I + 1);        Scanf(“%d”, &A[i][1]);        A[i][0] = I + 1;  }
+
+    For (int I = 0; I < n; i++) {
+
+        Index = I;     For (int j = I + 1; j < n; j++) {
+
+            If (A[j][1] < A[index][1]) index = j;   }
+
+        Temp = A[i][1]; A[i][1] = A[index][1]; A[index][1] = temp;
+
+        Temp = A[i][0]; A[i][0] = A[index][0]; A[index][0] = temp;    }     A[0][2] = 0;
+
+    Printf(“P     BT     WT     TAT\n”);    For (int I = 0; I < n; i++) {
+
+        If (I > 0) A[i][2] = A[I – 1][2] + A[I – 1][1];
+
+        A[i][3] = A[i][1] + A[i][2];        Total_wt += A[i][2];        Total_tat += A[i][3];
+
+        Printf(“P%d    %d     %d      %d\n”, A[i][0], A[i][1], A[i][2], A[i][3]);    }
+
+    Printf(“Average Waiting Time = %.2f\n”, (float)total_wt / n);
+
+    Printf(“Average Turnaround Time = %.2f\n”, (float)total_tat / n);
+
+    Return 0;   }
+
+ 
+
+ 
+
+ 
+
+Round robin scheduling 
+
+#include <stdio.h>   Void main() {
+
+    Int n, burst[10], rem[10], wait[10], turn[10];
+
+    Int quantum, time = 0, remaining;
+
+    Printf(“Enter the number of processes: “);    Scanf(“%d”, &n);
+
+    Remaining = n;   // Input burst times
+
+   Printf(“Enter burst time for each process:\n”);
+
+    For (int I = 0; I < n; i++) {
+
+        Printf(“Process %d: “, I + 1);
+
+        Scanf(“%d”, &burst[i]);
+
+        Rem[i] = burst[i];  // Initialize remaining burst time
+
+        Wait[i] = 0;        // Initialize waiting time  }
+
+    // Input time quantum
+
+    Printf(“Enter the time quantum: “);
+
+    Scanf(“%d”, &quantum);
+
+    // Round Robin execution
+
+    While (remaining > 0) {
+
+        For (int I = 0; I < n; i++) {
+
+            If (rem[i] > 0) {
+
+                If (rem[i] > quantum) {   Time += quantum;          Rem[i] -= quantum;
+
+                } else {     Time += rem[i];
+
+                    Turn[i] = time;              // Turnaround time
+
+                    Wait[i] = turn[i] – burst[i]; // Waiting time
+
+                    Rem[i] = 0;                 // Process completed
+
+                    Remaining--;          }       }    }   }
+
+    Printf(“\nBurst-time  Waiting-time  Turnaround-time\n”);
+
+    Float total_wait = 0, total_turn = 0;    For (int I = 0; I < n; i++) {
+
+     Printf(“%d           %d             %d\n”, burst[i], wait[i], turn[i]);
+
+        Total_wait += wait[i];        Total_turn += turn[i];    }
+
+    Printf(“\nAverage waiting time: %.2f\n”, total_wait / n);
+
+    Printf(“Average turnaround time: %.2f\n”, total_turn / n);   }
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Priority scheaulding 
+
+#include <stdio.h>
+
+Void main() {
+
+    Int num_proc;
+
+    Printf(“Enter the number of processes: “);
+
+    Scanf(“%d”, &num_proc);
+
+    Int burst_time[num_proc], priority[num_proc], waiting_time[num_proc];
+
+    Float total_wt = 0, total_tat = 0;
+
+    Printf(“Enter burst times: “);
+
+    For (int I = 0; I < num_proc; i++) scanf(“%d”, &burst_time[i]);
+
+    Printf(“Enter priorities (lower = higher priority): “);
+
+    For (int I = 0; I < num_proc; i++) scanf(“%d”, &priority[i]);
+
+    // Sorting based on priority (Bubble sort)
+
+    For (int I = 0; I < num_proc – 1; i++)
+
+        For (int j = I + 1; j < num_proc; j++)
+
+            If (priority[i] > priority[j]) {  Int temp = priority[i];
+
+                Priority[i] = priority[j];      Priority[j] = temp;
+
+                Temp = burst_time[i];                Burst_time[i] = burst_time[j];
+
+                Burst_time[j] = temp;      }
+
+    Waiting_time[0] = 0;
+
+    For (int I = 1; I < num_proc; i++) 
+
+        Waiting_time[i] = burst_time[I – 1] + waiting_time[I – 1];
+
+    Printf(“\nPriority   Burst-time   Waiting-time   Turnaround-time\n”);
+
+    For (int I = 0; I < num_proc; i++) {
+
+        Int turnaround_time = burst_time[i] + waiting_time[i];
+
+        Total_wt += waiting_time[i];       Total_tat += turnaround_time;
+
+        Printf(“%d\t\t%d\t\t%d\t\t%d\n”, priority[i], burst_time[i], waiting_time[i], turnaround_time);    } 
+
+   Printf(“\nAvg Waiting Time: %.2f\nAvg Turnaround Time: %.2f\n”, total_wt / num_proc, total_tat / num_proc);    }
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Deadlock   #include <stdio.h>     Int main() {
+
+    Int processes = 3, resources = 3;
+
+    Int allocation[3][3] = {{0, 1, 0}, {2, 0, 0}, {3, 0, 2}};
+
+    Int max[3][3] = {{7, 5, 3}, {3, 2, 2}, {9, 0, 2}};
+
+    Int available[3] = {3, 3, 2};
+
+    Int finish[3] = {0, 0, 0}; // Flag for each process to check if it’s finished
+
+    Int work[3];
+
+    // Initial work = Available resources
+
+    For (int I = 0; I < resources; i++) {
+
+        Work[i] = available[i];    }
+
+    Int count = 0;    While (count < processes) {
+
+        Int found = 0;
+
+    For (int I = 0; I < processes; i++) {            If (!finish[i]) {
+
+                // Check if the process can be completed
+
+                Int canFinish = 1;
+
+                For (int j = 0; j < resources; j++) {
+
+                    If (max[i][j] – allocation[i][j] > work[j]) {     canFinish = 0;     break;     }    }
+
+                If (canFinish) {
+
+                    For (int j = 0; j < resources; j++) {       Work[j] += allocation[i][j];   }
+
+                    Finish[i] = 1;            Found = 1;
+
+  Count++;        Printf(“Process %d completed.\n”, i);       }       }    }
+
+        If (!found) {   Printf(“Deadlock detected! No process can proceed.\n”);
+
+            Break;     }   }    Return 0;   }
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Bankers algorithms 
+
+#include <stdio.h>   Int main() {
+
+    Int p, r;
+
+    Printf(“Enter processes and resources: “);
+
+    Scanf(“%d %d”, &p, &r);
+
+    Int allocation[p][r], max[p][r], need[p][r], available[r], finish[p], safeSeq[p];
+
+    Printf(“Enter Allocation matrix:\n”);
+
+    For (int I = 0; I < p; i++) 
+
+        For (int j = 0; j < r; j++) scanf(“%d”, &allocation[i][j]);
+
+    Printf(“Enter Max matrix:\n”);
+
+    For (int I = 0; I < p; i++) 
+
+        For (int j = 0; j < r; j++) scanf(“%d”, &max[i][j]);
+
+    Printf(“Enter Available resources:\n”);
+
+    For (int I = 0; I < r; i++) scanf(“%d”, &available[i]);
+
+    For (int I = 0; I < p; i++) {
+
+        Finish[i] = 0;
+
+        For (int j = 0; j < r; j++) need[i][j] = max[i][j] – allocation[i][j]; }
+
+    Int work[r], count = 0;
+
+    For (int I = 0; I < r; i++) work[i] = available[i];
+
+    While (count < p) {        Int found = 0;
+
+        For (int I = 0; I < p; i++) {            If (!finish[i]) {                Int canAllocate = 1;
+
+                For (int j = 0; j < r; j++) if (need[i][j] > work[j]) canAllocate = 0;
+
+                If (canAllocate) {
+
+                    For (int j = 0; j < r; j++) work[j] += allocation[i][j];     Finish[i] = 1;
+
+                    safeSeq[count++] = I;
+
+                    printf(“P%d executed\n”, i);                    found = 1;                    break;}}}
+
+  If (!found) { Printf(“Deadlock detected! No safe sequence.\n”); Return 0;   } }
+
+    Printf(“\nSafe Sequence: “);
+
+    For (int I = 0; I < p; i++) printf(“P%d “, safeSeq[i]);
+
+    Printf(“\n”);    Return 0;}
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+
+
+
+
+
+
